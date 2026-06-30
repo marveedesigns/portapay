@@ -25,4 +25,4 @@ COPY --from=build /app/backend/drizzle backend/drizzle
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/backend/node_modules backend/node_modules
 EXPOSE 4000
-CMD ["npm", "--workspace", "backend", "run", "start"]
+CMD ["npm", "run", "start:railway"]
