@@ -1,4 +1,4 @@
-﻿import { Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
@@ -141,6 +141,11 @@ export class NombaProvider implements PaymentProvider {
     const left = Buffer.from(signature.trim());
     const right = Buffer.from(computed);
     return left.length === right.length && timingSafeEqual(left, right);
+  }
+
+  hasWebhookSecret() {
+    const cfg = this.getConfig();
+    return Boolean(cfg.webhookSecret);
   }
 
   async fetchTransactions(): Promise<ProviderTransaction[]> {

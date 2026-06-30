@@ -45,7 +45,9 @@ const transactionId = readArg('--reference') ?? `apidog-${scenario.key}-${unique
 const timestamp = new Date().toISOString();
 const requestId = `req-${transactionId}`;
 const sessionId = `session-${transactionId}`;
-const signature = signPayload({ scenario, requestId, sessionId, transactionId, timestamp, secret: webhookSecret });
+const signature = webhookSecret
+  ? signPayload({ scenario, requestId, sessionId, transactionId, timestamp, secret: webhookSecret })
+  : '';
 const baseUrl = readArg('--base-url') ?? process.env.PORTAPAY_API_BASE_URL ?? `http://localhost:${process.env.PORTAPAY_CORE_PORT ?? process.env.PORT ?? 4000}/api/v1`;
 
 const environment = {
@@ -91,6 +93,9 @@ writeFileSync(outputPath, `${JSON.stringify(environment, null, 2)}\n`, { encodin
 console.log(`Apidog environment written to ${outputPath}`);
 console.log(`Scenario: ${scenario.key}`);
 console.log(`Nomba transaction ID: ${transactionId}`);
+if (!webhookSecret) {
+  console.log('No Nomba webhook secret found; generated webhook variables will rely on provider verification after receipt.');
+}
 console.log('Import the generated environment into Apidog, then use the running API Swagger endpoint at /api/docs-json.');
 
 function variable(key: string, value: string) {

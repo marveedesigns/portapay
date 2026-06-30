@@ -1,4 +1,4 @@
-﻿import { InjectQueue } from '@nestjs/bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { DRIZZLE } from '../database/database.tokens';
@@ -29,15 +29,23 @@ export class WebhooksService {
     const transaction = (payload as any).data?.transaction ?? {};
     const providerEventId = String(payload.requestId ?? payload.id ?? payload.eventId ?? transaction.transactionId ?? transaction.sessionId ?? crypto.randomUUID());
     const signatureHeadersSupported = this.supportsNombaSignatureHeaders(meta);
-    const signatureValid = signatureHeadersSupported ? await this.nomba.verifyWebhook(payload, meta.signature, meta.timestamp) : false;
-    const replayProtected = this.isFreshTimestamp(meta.timestamp);
+    const webhookSecretConfigured = this.nomba.hasWebhookSecret();
+    const signatureValid = webhookSecretConfigured && signatureHeadersSupported
+      ? await this.nomba.verifyWebhook(payload, meta.signature, meta.timestamp)
+      : false;
+    const replayProtected = webhookSecretConfigured ? this.isFreshTimestamp(meta.timestamp) : true;
+    const shouldVerifyWithProvider = signatureHeadersSupported && (
+      webhookSecretConfigured ? signatureValid && replayProtected : true
+    );
     const processingStatus = !signatureHeadersSupported
       ? 'SIGNATURE_HEADER_UNSUPPORTED'
-      : !signatureValid
-        ? 'SIGNATURE_FAILED'
-        : !replayProtected
-          ? 'REPLAY_REJECTED'
-          : 'RECEIVED';
+      : !webhookSecretConfigured
+        ? 'RECEIVED_PENDING_PROVIDER_VERIFICATION'
+        : !signatureValid
+          ? 'SIGNATURE_FAILED'
+          : !replayProtected
+            ? 'REPLAY_REJECTED'
+            : 'RECEIVED';
 
     const [webhook] = await this.db.insert(webhookEvents).values({
       provider,
@@ -50,6 +58,7 @@ export class WebhooksService {
         _rawBodyPresent: Boolean(meta.rawBody),
         _signatureAlgorithm: meta.signatureAlgorithm,
         _signatureVersion: meta.signatureVersion,
+        _webhookSecretConfigured: webhookSecretConfigured,
       },
     }).onConflictDoNothing().returning();
 
@@ -60,7 +69,7 @@ export class WebhooksService {
       payload,
     }).onConflictDoNothing();
 
-    if (webhook && signatureHeadersSupported && signatureValid && replayProtected) {
+    if (webhook && shouldVerifyWithProvider) {
       await this.verificationQueue.add('verify-provider-transaction', {
         provider,
         providerEventId,
@@ -68,7 +77,15 @@ export class WebhooksService {
       });
     }
 
-    return { accepted: true, duplicate: !webhook, signatureValid, replayProtected, signatureHeadersSupported };
+    return {
+      accepted: true,
+      duplicate: !webhook,
+      signatureValid,
+      replayProtected,
+      signatureHeadersSupported,
+      webhookSecretConfigured,
+      queuedForVerification: Boolean(webhook && shouldVerifyWithProvider),
+    };
   }
 
   private supportsNombaSignatureHeaders(meta: WebhookMeta) {
