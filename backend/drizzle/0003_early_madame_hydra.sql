@@ -1,0 +1,2 @@
+DROP INDEX "reconciliation_decisions_transaction_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX "reconciliation_decisions_transaction_unique" ON "reconciliation_decisions" USING btree ("transaction_id");

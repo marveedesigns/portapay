@@ -1,0 +1,67 @@
+node_modules
+.env
+.env.*
+!.env.example
+dist
+coverage
+*.tsbuildinfo
+.drizzle
+.vite
+.DS_Store
+npm-debug.log*
+
+# Local environment and secrets
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*secret*
+*credentials*
+
+# Logs and local runtime output
+*.log
+logs/
+admin-dev.log
+backend-dev.log
+backend-start.log
+backend-*.log
+backend-*.err.log
+
+# Private challenge/source documents and planning notes
+docs/
+implementation.md
+instruction.md
+*.docx
+~$*.docx
+*.pdf
+
+# Screenshots and local media/reference assets
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.mov
+*.avi
+
+# Local tool/editor workspace metadata
+.*
+!.gitignore
+!.dockerignore
+!.gitattributes
+!.env.example
+!.node-version
+!.nvmrc
+!.npmrc
+!.github/
+!.github/**
+*.code-workspace
+.vscode/
+.idea/
+
+# Build outputs by workspace
+backend/dist/
+admin/dist/

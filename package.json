@@ -1,0 +1,33 @@
+{
+  "name": "portapay",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PortaPay Core monorepo",
+  "workspaces": [
+    "backend",
+    "admin"
+  ],
+  "scripts": {
+    "dev": "npm --workspace backend run dev",
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:admin": "npm --workspace admin run dev",
+    "build": "npm --workspaces --if-present run build",
+    "test": "npm --workspaces --if-present run test",
+    "lint": "npm --workspaces --if-present run lint",
+    "db:generate": "npm --workspace backend run db:generate",
+    "db:migrate": "npm --workspace backend run db:migrate",
+    "docker:up": "docker compose up -d",
+    "demo:seed": "npm --workspace backend run demo:seed",
+    "demo:webhook": "npm --workspace backend run demo:webhook",
+    "apidog:prepare": "npm --workspace backend run apidog:prepare",
+    "deploy:check": "npm run build && npm --workspace backend run test && npm run db:generate"
+  },
+  "engines": {
+    "node": "24.18.0"
+  },
+  "packageManager": "npm@11.12.1",
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1"
+  }
+}
