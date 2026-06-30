@@ -10,15 +10,30 @@ const defaultJobOptions = {
   removeOnFail: false,
 };
 
+function redisConnection(config: ConfigService): Record<string, unknown> {
+  const tls = config.get<boolean>('app.redis.tls', false);
+  const connection: Record<string, unknown> = {
+    host: config.get<string>('app.redis.host') ?? 'localhost',
+    port: config.get<number>('app.redis.port') ?? 6379,
+    db: config.get<number>('app.redis.db') ?? 0,
+    maxRetriesPerRequest: null,
+  };
+
+  const username = config.get<string>('app.redis.username');
+  const password = config.get<string>('app.redis.password');
+  if (username) connection.username = username;
+  if (password) connection.password = password;
+  if (tls) connection.tls = {};
+
+  return connection;
+}
+
 @Module({
   imports: [
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get<string>('app.redis.host') ?? 'localhost',
-          port: config.get<number>('app.redis.port') ?? 6379,
-        },
+        connection: redisConnection(config),
         defaultJobOptions,
       }),
     }),
@@ -27,3 +42,4 @@ const defaultJobOptions = {
   exports: [BullModule],
 })
 export class QueuesModule {}
+

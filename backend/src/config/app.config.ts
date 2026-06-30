@@ -1,4 +1,4 @@
-﻿import { registerAs } from '@nestjs/config';
+import { registerAs } from '@nestjs/config';
 
 function parseCsv(value?: string) {
   return value
@@ -18,6 +18,32 @@ function defaultCorsOrigins() {
     'http://127.0.0.1:5174',
   ]));
 }
+
+function redisConfig() {
+  if (process.env.REDIS_URL) {
+    const redisUrl = new URL(process.env.REDIS_URL);
+    return {
+      url: process.env.REDIS_URL,
+      host: redisUrl.hostname,
+      port: Number(redisUrl.port || 6379),
+      username: decodeURIComponent(redisUrl.username || process.env.REDIS_USERNAME || ''),
+      password: decodeURIComponent(redisUrl.password || process.env.REDIS_PASSWORD || ''),
+      db: Number(redisUrl.pathname.replace('/', '') || process.env.REDIS_DB || 0),
+      tls: redisUrl.protocol === 'rediss:' || process.env.REDIS_TLS === 'true',
+    };
+  }
+
+  return {
+    url: undefined,
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: Number(process.env.REDIS_PORT ?? 6379),
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    db: Number(process.env.REDIS_DB ?? 0),
+    tls: process.env.REDIS_TLS === 'true',
+  };
+}
+
 function nombaEnv(prefix: 'TEST' | 'LIVE') {
   return {
     baseUrl: process.env[`NOMBA_${prefix}_BASE_URL`] ?? (prefix === 'TEST' ? 'https://sandbox.nomba.com' : 'https://api.nomba.com'),
@@ -37,10 +63,7 @@ export default registerAs('app', () => {
     nodeEnv: process.env.NODE_ENV ?? 'development',
     port: Number(process.env.PORT ?? process.env.PORTAPAY_CORE_PORT ?? 4000),
     databaseUrl: process.env.DATABASE_URL,
-    redis: {
-      host: process.env.REDIS_HOST ?? 'localhost',
-      port: Number(process.env.REDIS_PORT ?? 6379),
-    },
+    redis: redisConfig(),
     cors: {
       allowAll: process.env.CORS_ALLOW_ALL === 'true',
       allowedOrigins: parseCsv(process.env.CORS_ALLOWED_ORIGINS).length
