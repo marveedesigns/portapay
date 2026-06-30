@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import compress from '@fastify/compress';
 import helmet from '@fastify/helmet';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -10,6 +10,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/api-exception.filter';
 import { createRateLimitHook } from './common/rate-limit.middleware';
+
+const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   const adapter = new FastifyAdapter({ bodyLimit: 2 * 1024 * 1024 });
@@ -58,10 +60,17 @@ async function bootstrap() {
     .build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 
-  await app.listen({ port: config.get<number>('app.port', 4000), host: '0.0.0.0' });
+  const port = config.get<number>('app.port', 4000);
+  await app.listen({ port, host: '0.0.0.0' });
+  logger.log('PortaPay API listening on port ' + port);
+  logger.log('Healthcheck ready at /api/v1/health');
 }
 
-void bootstrap();
+bootstrap().catch((error: unknown) => {
+  const message = error instanceof Error ? error.stack ?? error.message : String(error);
+  logger.error('PortaPay API failed to start: ' + message);
+  process.exitCode = 1;
+});
 
 export type PortaPayFastifyRequest = FastifyRequest & { rawBody?: Buffer };
 export type PortaPayFastifyReply = FastifyReply;
