@@ -1,38 +1,31 @@
-﻿import 'reflect-metadata';
-import compression from 'compression';
-import express from 'express';
-import helmet from 'helmet';
+import 'reflect-metadata';
+import compress from '@fastify/compress';
+import helmet from '@fastify/helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/api-exception.filter';
-import { rateLimitMiddleware } from './common/rate-limit.middleware';
+import { createRateLimitHook } from './common/rate-limit.middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const adapter = new FastifyAdapter({ bodyLimit: 2 * 1024 * 1024 });
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter, { rawBody: true });
   const config = app.get(ConfigService);
 
-  app.use(express.json({
-    limit: '2mb',
-    verify: (req: express.Request & { rawBody?: string }, _res, buf) => {
-      if (req.originalUrl.includes('/webhooks/nomba')) {
-        req.rawBody = buf.toString('utf8');
-      }
-    },
-  }));
-  app.use(express.urlencoded({ extended: true }));
   app.setGlobalPrefix('api/v1');
-  app.use(helmet());
-  app.use(rateLimitMiddleware());
-  app.use(compression());
+  await app.register(helmet);
+  await app.register(compress);
+
   const corsAllowAll = config.get<boolean>('app.cors.allowAll', false);
   const corsAllowedOrigins = config.get<string[]>('app.cors.allowedOrigins', []);
   app.enableCors({
     origin: corsAllowAll
       ? true
-      : (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+      : (origin: string | undefined, callback: (error: Error | null, origin: boolean | string) => void) => {
           if (!origin || corsAllowedOrigins.includes(origin)) {
             callback(null, true);
             return;
@@ -49,6 +42,10 @@ async function bootstrap() {
       'x-api-key',
     ],
   });
+
+  const fastify = app.getHttpAdapter().getInstance() as FastifyInstance;
+  fastify.addHook('onRequest', createRateLimitHook());
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new ApiExceptionFilter());
 
@@ -61,7 +58,11 @@ async function bootstrap() {
     .build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 
-  await app.listen(config.get<number>('app.port', 4000));
+  await app.listen({ port: config.get<number>('app.port', 4000), host: '0.0.0.0' });
 }
 
 void bootstrap();
+
+export type PortaPayFastifyRequest = FastifyRequest & { rawBody?: Buffer };
+export type PortaPayFastifyReply = FastifyReply;
+

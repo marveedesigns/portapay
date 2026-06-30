@@ -1,4 +1,4 @@
-﻿import { Body, Controller, Headers, Post, Req } from '@nestjs/common';
+import { Body, Controller, Headers, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ok } from '../common/api-response';
 import type { RawBodyRequest } from '../common/raw-body-request';
@@ -20,11 +20,18 @@ export class WebhooksController {
     @Headers('nomba-timestamp') timestamp?: string,
   ) {
     return ok(await this.webhooks.receiveProviderWebhook('nomba', payload, {
-      rawBody: request.rawBody,
+      rawBody: this.rawBodyToString(request.rawBody),
       signature: signature ?? signatureValue,
       timestamp,
       signatureAlgorithm,
       signatureVersion,
     }));
   }
+
+
+  private rawBodyToString(rawBody: Buffer | string | undefined) {
+    if (!rawBody) return undefined;
+    return Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : rawBody;
+  }
 }
+

@@ -1,73 +1,71 @@
 {
-    "name": "@portapay/backend",
-    "private": true,
-    "version": "0.1.0",
-    "type": "commonjs",
-    "scripts": {
-        "dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
-        "build": "tsc -p tsconfig.build.json",
-        "start": "node dist/src/main.js",
-        "test": "jest --passWithNoTests",
-        "lint": "eslint \"src/**/*.ts\"",
-        "db:generate": "drizzle-kit generate",
-        "db:migrate": "drizzle-kit migrate",
-        "db:studio": "drizzle-kit studio",
-        "demo:seed": "node -r ts-node/register -r tsconfig-paths/register src/scripts/seed-demo.ts",
-        "demo:webhook": "node -r ts-node/register -r tsconfig-paths/register src/scripts/simulate-nomba-webhook.ts",
-        "apidog:prepare": "node -r ts-node/register -r tsconfig-paths/register src/scripts/prepare-apidog.ts"
+  "name": "@portapay/backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/main.js",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint \"src/**/*.ts\"",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "demo:seed": "node -r ts-node/register -r tsconfig-paths/register src/scripts/seed-demo.ts",
+    "demo:webhook": "node -r ts-node/register -r tsconfig-paths/register src/scripts/simulate-nomba-webhook.ts",
+    "apidog:prepare": "node -r ts-node/register -r tsconfig-paths/register src/scripts/prepare-apidog.ts"
+  },
+  "dependencies": {
+    "@fastify/compress": "^9.0.0",
+    "@fastify/helmet": "^13.0.2",
+    "@nestjs/bullmq": "^11.0.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-fastify": "^11.1.27",
+    "@nestjs/swagger": "^11.4.5",
+    "bullmq": "^5.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "drizzle-orm": "^0.45.2",
+    "ioredis": "^5.11.1",
+    "pg": "^8.13.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.13.2",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.31.0",
+    "eslint": "^10.5.0",
+    "jest": "^30.0.0",
+    "source-map-support": "^0.5.21",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^6.0.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
     },
-    "dependencies": {
-        "@nestjs/bullmq": "^11.0.0",
-        "@nestjs/common": "^11.0.0",
-        "@nestjs/config": "^4.0.0",
-        "@nestjs/core": "^11.0.0",
-        "@nestjs/platform-express": "^11.0.0",
-        "@nestjs/swagger": "^11.0.0",
-        "bullmq": "^5.0.0",
-        "class-transformer": "^0.5.1",
-        "class-validator": "^0.15.1",
-        "compression": "^1.7.4",
-        "drizzle-orm": "^0.45.2",
-        "helmet": "^8.0.0",
-        "ioredis": "^5.11.1",
-        "pg": "^8.13.0",
-        "reflect-metadata": "^0.2.2",
-        "rxjs": "^7.8.1"
-    },
-    "devDependencies": {
-        "@nestjs/testing": "^11.0.0",
-        "@types/compression": "^1.7.5",
-        "@types/express": "^5.0.0",
-        "@types/jest": "^30.0.0",
-        "@types/node": "^24.13.2",
-        "@types/pg": "^8.11.10",
-        "drizzle-kit": "^0.31.0",
-        "eslint": "^10.5.0",
-        "jest": "^30.0.0",
-        "source-map-support": "^0.5.21",
-        "ts-jest": "^29.2.5",
-        "ts-node": "^10.9.2",
-        "tsconfig-paths": "^4.2.0",
-        "typescript": "^6.0.3"
-    },
-    "jest": {
-        "moduleFileExtensions": [
-            "js",
-            "json",
-            "ts"
-        ],
-        "rootDir": "src",
-        "testRegex": ".*\\.spec\\.ts$",
-        "transform": {
-            "^.+\\.(t|j)s$": "ts-jest"
-        },
-        "collectCoverageFrom": [
-            "**/*.(t|j)s"
-        ],
-        "coverageDirectory": "../coverage/backend",
-        "testEnvironment": "node"
-    },
-    "engines": {
-        "node": "24.18.0"
-    }
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage/backend",
+    "testEnvironment": "node"
+  },
+  "engines": {
+    "node": "24.18.0"
+  }
 }

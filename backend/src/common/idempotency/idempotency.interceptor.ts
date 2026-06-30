@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { from, Observable, of, switchMap } from 'rxjs';
 import { IdempotencyService } from './idempotency.service';
 
@@ -11,8 +11,8 @@ export class IdempotencyInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const http = context.switchToHttp();
-    const request = http.getRequest<Request>();
-    const response = http.getResponse<Response>();
+    const request = http.getRequest<FastifyRequest>();
+    const response = http.getResponse<FastifyReply>();
 
     if (!MUTATING_METHODS.has(request.method)) {
       return next.handle();
@@ -23,13 +23,13 @@ export class IdempotencyInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const scope = `${request.method}:${request.originalUrl.split('?')[0]}`;
+    const scope = `${request.method}:${request.url.split('?')[0]}`;
     const requestHash = this.idempotency.hashPayload(request.body);
 
     return from(this.idempotency.start(key, scope, requestHash)).pipe(
       switchMap((record) => {
         if ('cached' in record) {
-          response.setHeader('Idempotency-Replayed', 'true');
+          response.header('Idempotency-Replayed', 'true');
           return of(record.cached);
         }
         return next.handle().pipe(

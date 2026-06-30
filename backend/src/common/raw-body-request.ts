@@ -1,5 +1,5 @@
-import type { Request } from 'express';
+import type { FastifyRequest } from 'fastify';
 
-export interface RawBodyRequest extends Request {
-  rawBody?: string;
+export interface RawBodyRequest extends FastifyRequest {
+  rawBody?: Buffer | string;
 }
