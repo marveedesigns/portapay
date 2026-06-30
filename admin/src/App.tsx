@@ -20,7 +20,10 @@ import {
   Sun,
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+const DEFAULT_API_BASE = import.meta.env.PROD
+  ? 'https://portapaybackend-production.up.railway.app/api/v1'
+  : 'http://localhost:4000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE).replace(/\/$/, '');
 
 type Theme = 'light' | 'dark';
 type View = 'dashboard' | 'cases' | 'customers' | 'accounts' | 'transactions' | 'ledger' | 'webhooks' | 'audit';
